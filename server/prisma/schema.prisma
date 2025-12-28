@@ -1,0 +1,325 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== USERS =====
+model User {
+  id            String       @id @default(uuid())
+  username      String       @unique
+  email         String       @unique
+  password_hash String
+  role          Role         @default(USER)
+  is_active     Boolean      @default(true)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  collections   Collection[]
+  decks         Deck[]
+  wishlists     Wishlist[]
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+// ===== PACKS (Admin-managed) =====
+model Pack {
+  id            String    @id @default(uuid())
+  set_code      String    @unique  // e.g., "LOB", "MRD"
+  title         String               // English title
+  title_jp      String?              // Japanese title
+  title_cn      String?              // Chinese title
+  title_kor     String?              // Korean title
+  language      Language  @default(EN)
+  release_date  DateTime?
+  set_type      SetType   @default(BOOSTER)
+  total_cards   Int       @default(0)
+  
+  // Cover Images (stored as CDN URLs)
+  cover_image       String?              // Standard cover image
+  cover_image_small String?              // Thumbnail for lists
+  cover_blurhash    String?              // Blur placeholder
+  
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  cards         Card[]
+}
+
+enum Language {
+  EN
+  JP
+  CN
+  KOR
+}
+
+enum SetType {
+  BOOSTER
+  STRUCTURE_DECK
+  STARTER_DECK
+  SPECIAL_EDITION
+  TIN
+  PROMO
+  DUELIST_PACK
+  LEGENDARY_COLLECTION
+}
+
+// ===== CARDS (Admin-managed) =====
+model Card {
+  id              String      @id @default(uuid())
+  
+  // Identifiers
+  card_number     String      @unique  // e.g., "LOB-EN001"
+  set_code        String                // e.g., "LOB"
+  set_position    String                // e.g., "001"
+  konami_id       String?               // 8-digit code
+  
+  // Basic Info
+  name            String
+  name_jp         String?
+  name_cn         String?
+  name_kor        String?
+  language        Language    @default(EN)
+  
+  // Card Classification
+  card_type       CardType
+  frame_color     FrameColor
+  
+  // Monster-specific
+  attribute       Attribute?
+  monster_type    String?              // Dragon, Spellcaster, etc.
+  monster_abilities String[]           // Effect, Tuner, Flip, etc.
+  level           Int?
+  rank            Int?
+  link_rating     Int?
+  link_arrows     String[]
+  pendulum_scale  Int?
+  atk             String?              // Can be "?" 
+  def             String?              // Can be "?" or null for Link
+  
+  // Spell/Trap specific
+  spell_type      SpellType?
+  trap_type       TrapType?
+  
+  // Text
+  card_text       String?
+  pendulum_effect String?
+  
+  // Rarity & Media
+  rarity          Rarity      @default(COMMON)
+  
+  // Images (stored as CDN URLs, NOT binary data)
+  image_url       String?              // Standard resolution (~421x614px)
+  image_url_small String?              // Thumbnail (~168x246px)
+  image_url_high  String?              // High-res for zoom (~813x1185px)
+  image_blurhash  String?              // Blur placeholder for instant loading
+  
+  // Legality
+  tcg_legal       Boolean     @default(true)
+  ocg_legal       Boolean     @default(true)
+  ban_status      BanStatus   @default(UNLIMITED)
+  
+  // Pricing (JSON for flexibility)
+  prices          Json?       // { tcgplayer: {...}, cardmarket: {...}, yuyutei: {...} }
+  prices_updated  DateTime?
+  
+  // Relations
+  pack_id         String
+  pack            Pack        @relation(fields: [pack_id], references: [id])
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+
+  collection_cards CollectionCard[]
+  deck_cards       DeckCard[]
+  wishlists        Wishlist[]
+
+  @@index([set_code])
+  @@index([name])
+  @@index([card_type])
+}
+
+enum CardType {
+  MONSTER
+  SPELL
+  TRAP
+}
+
+enum FrameColor {
+  NORMAL          // Yellow - Normal Monster
+  EFFECT          // Orange - Effect Monster
+  RITUAL          // Blue - Ritual Monster
+  FUSION          // Purple - Fusion Monster
+  SYNCHRO         // White - Synchro Monster
+  XYZ             // Black - Xyz Monster
+  PENDULUM        // Gradient - Pendulum Monster
+  LINK            // Dark Blue - Link Monster
+  TOKEN           // Gray - Token
+  SPELL           // Green/Teal
+  TRAP            // Magenta/Purple
+}
+
+enum Attribute {
+  DARK
+  LIGHT
+  EARTH
+  WATER
+  FIRE
+  WIND
+  DIVINE
+}
+
+enum SpellType {
+  NORMAL
+  CONTINUOUS
+  EQUIP
+  QUICK_PLAY
+  FIELD
+  RITUAL
+}
+
+enum TrapType {
+  NORMAL
+  CONTINUOUS
+  COUNTER
+}
+
+enum Rarity {
+  COMMON
+  RARE
+  SUPER_RARE
+  ULTRA_RARE
+  SECRET_RARE
+  ULTIMATE_RARE
+  GHOST_RARE
+  STARLIGHT_RARE
+  PRISMATIC_SECRET_RARE
+  GOLD_RARE
+  PLATINUM_RARE
+  COLLECTORS_RARE
+  QUARTER_CENTURY_SECRET
+}
+
+enum BanStatus {
+  UNLIMITED
+  SEMI_LIMITED
+  LIMITED
+  FORBIDDEN
+}
+
+// ===== COLLECTIONS =====
+model Collection {
+  id          String    @id @default(uuid())
+  user_id     String
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  is_public   Boolean   @default(false)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  cards       CollectionCard[]
+
+  @@unique([user_id, name])
+}
+
+model CollectionCard {
+  id              String      @id @default(uuid())
+  collection_id   String
+  collection      Collection  @relation(fields: [collection_id], references: [id], onDelete: Cascade)
+  card_id         String
+  card            Card        @relation(fields: [card_id], references: [id])
+  
+  quantity        Int         @default(1)
+  condition       Condition   @default(NEAR_MINT)
+  language        Language    @default(EN)
+  is_first_edition Boolean    @default(false)
+  purchase_price  Decimal?    @db.Decimal(10, 2)
+  purchase_currency String?   @default("USD")
+  notes           String?
+  added_at        DateTime    @default(now())
+
+  @@unique([collection_id, card_id, condition, language, is_first_edition])
+}
+
+enum Condition {
+  MINT
+  NEAR_MINT
+  LIGHTLY_PLAYED
+  MODERATELY_PLAYED
+  HEAVILY_PLAYED
+  DAMAGED
+}
+
+// ===== DECKS =====
+model Deck {
+  id          String    @id @default(uuid())
+  user_id     String
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  format      String?   // "Advanced", "Traditional", "Speed Duel"
+  is_public   Boolean   @default(false)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  cards       DeckCard[]
+
+  @@unique([user_id, name])
+}
+
+model DeckCard {
+  id        String    @id @default(uuid())
+  deck_id   String
+  deck      Deck      @relation(fields: [deck_id], references: [id], onDelete: Cascade)
+  card_id   String
+  card      Card      @relation(fields: [card_id], references: [id])
+  
+  quantity  Int       @default(1)
+  zone      DeckZone  @default(MAIN)
+
+  @@unique([deck_id, card_id, zone])
+}
+
+enum DeckZone {
+  MAIN
+  EXTRA
+  SIDE
+}
+
+// ===== WISHLISTS =====
+model Wishlist {
+  id                    String    @id @default(uuid())
+  user_id               String
+  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  card_id               String
+  card                  Card      @relation(fields: [card_id], references: [id])
+  
+  price_alert_enabled   Boolean   @default(false)
+  price_alert_threshold Decimal?  @db.Decimal(10, 2)
+  price_alert_source    String?   // "tcgplayer", "cardmarket", "yuyutei"
+  added_at              DateTime  @default(now())
+
+  @@unique([user_id, card_id])
+}
+
+// ===== PRICE HISTORY (Optional) =====
+model PriceHistory {
+  id          String    @id @default(uuid())
+  card_id     String
+  source      String    // "tcgplayer", "cardmarket", "yuyutei"
+  price_low   Decimal?  @db.Decimal(10, 2)
+  price_mid   Decimal?  @db.Decimal(10, 2)
+  price_high  Decimal?  @db.Decimal(10, 2)
+  price_market Decimal? @db.Decimal(10, 2)
+  currency    String
+  recorded_at DateTime  @default(now())
+
+  @@index([card_id, source, recorded_at])
+}
+
