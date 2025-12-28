@@ -6,6 +6,9 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config({ path: '../.env' });
 
+// Import routes
+import routes from './routes';
+
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
 
@@ -23,21 +26,73 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API Routes placeholder
+// API info endpoint
 app.get('/api', (req: Request, res: Response) => {
   res.json({ 
     message: 'TCG Collection API',
     version: '1.0.0',
     endpoints: {
-      auth: '/api/auth',
-      cards: '/api/cards',
-      packs: '/api/packs',
-      collections: '/api/collections',
-      decks: '/api/decks',
-      admin: '/api/admin',
+      auth: {
+        'POST /api/auth/login': 'Login with username/email and password',
+        'POST /api/auth/register': 'Register a new user',
+      },
+      user: {
+        'GET /api/me': 'Get current user profile',
+        'PUT /api/me': 'Update current user profile',
+      },
+      cards: {
+        'GET /api/cards': 'Get all cards with filters',
+        'GET /api/cards/search': 'Quick search cards',
+        'GET /api/cards/:id': 'Get card by ID',
+      },
+      packs: {
+        'GET /api/packs': 'Get all packs',
+        'GET /api/packs/:id': 'Get pack by ID',
+      },
+      collections: {
+        'GET /api/collections': 'Get user collections',
+        'POST /api/collections': 'Create collection',
+        'GET /api/collections/:id': 'Get collection with cards',
+        'PUT /api/collections/:id': 'Update collection',
+        'DELETE /api/collections/:id': 'Delete collection',
+        'POST /api/collections/:id/cards': 'Add card to collection',
+        'DELETE /api/collections/:id/cards/:cardId': 'Remove card from collection',
+      },
+      decks: {
+        'GET /api/decks': 'Get user decks',
+        'POST /api/decks': 'Create deck',
+        'GET /api/decks/:id': 'Get deck with cards',
+        'PUT /api/decks/:id': 'Update deck',
+        'DELETE /api/decks/:id': 'Delete deck',
+        'POST /api/decks/:id/cards': 'Add card to deck',
+        'DELETE /api/decks/:id/cards/:cardId': 'Remove card from deck',
+      },
+      wishlist: {
+        'GET /api/wishlist': 'Get user wishlist',
+        'POST /api/wishlist': 'Add card to wishlist',
+        'PUT /api/wishlist/:cardId': 'Update wishlist item',
+        'DELETE /api/wishlist/:cardId': 'Remove from wishlist',
+      },
+      admin: {
+        'GET /api/admin/dashboard': 'Admin dashboard stats',
+        'GET /api/admin/users': 'Get all users',
+        'PUT /api/admin/users/:id/role': 'Update user role',
+        'PUT /api/admin/users/:id/status': 'Activate/deactivate user',
+        'DELETE /api/admin/users/:id': 'Delete user',
+        'POST /api/admin/packs': 'Create pack',
+        'PUT /api/admin/packs/:id': 'Update pack',
+        'DELETE /api/admin/packs/:id': 'Delete pack',
+        'POST /api/admin/cards': 'Create card',
+        'PUT /api/admin/cards/:id': 'Update card',
+        'DELETE /api/admin/cards/:id': 'Delete card',
+        'POST /api/admin/cards/bulk-import': 'Bulk import cards',
+      },
     }
   });
 });
+
+// Mount API routes
+app.use('/api', routes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -57,4 +112,3 @@ app.listen(PORT, () => {
 });
 
 export default app;
-

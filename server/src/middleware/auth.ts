@@ -118,7 +118,7 @@ export const generateToken = (user: { id: string; username: string; email: strin
       role: user.role,
     },
     secret,
-    { expiresIn }
+    { expiresIn: expiresIn as jwt.SignOptions['expiresIn'] }
   );
 };
 
