@@ -102,6 +102,7 @@ export interface Card {
   prices?: CardPrices;
   prices_updated?: string;
   pack_id: string;
+  pack?: Pack;  // Pack relation when included
   created_at: string;
   updated_at: string;
 }
@@ -117,6 +118,9 @@ export interface PriceData {
   mid?: number;
   high?: number;
   market?: number;
+  averagePrice?: number;  // Cardmarket average price
+  lowPrice?: number;      // Cardmarket low price
+  listings?: number;      // Number of listings
   currency: string;
   updated_at: string;
 }

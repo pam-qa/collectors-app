@@ -180,7 +180,7 @@ export default function CardDetail() {
                 className="buy-button"
               >
                 <span>📄</span>
-                Buy on Cardmarket €{card.prices.cardmarket.averagePrice?.toFixed(2) || 'N/A'}
+                Buy on Cardmarket €{card.prices.cardmarket.averagePrice?.toFixed(2) || card.prices.cardmarket.market?.toFixed(2) || 'N/A'}
               </a>
             )}
           </div>
