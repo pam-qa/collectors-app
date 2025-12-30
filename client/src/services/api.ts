@@ -1,9 +1,12 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import type { AuthResponse, ApiResponse } from '../types';
 
+// Get API URL from environment variable or use proxy in development
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
 // Create axios instance with default config
 const api: AxiosInstance = axios.create({
-  baseURL: '/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
