@@ -353,6 +353,10 @@ export const deleteCard = async (req: Request, res: Response): Promise<void> => 
 
 interface FileUploadRequest extends Request {
   file?: Express.Multer.File;
+  body: {
+    pack_id?: string;
+    cards?: any[];
+  };
 }
 
 /**
@@ -451,19 +455,19 @@ export const bulkImportCards = async (req: FileUploadRequest, res: Response): Pr
     }
 
     // Use transaction for better performance and atomicity
-    const results = await prisma.$transaction(async (tx) => {
+    const results = await prisma.$transaction(async (tx: any) => {
       const result = { created: 0, skipped: 0, errors: [] as string[] };
 
       // Check existing cards in batch
-      const cardNumbers = validatedCards.map(c => c.card_number);
+      const cardNumbers = validatedCards.map((c: any) => c.card_number);
       const existingCards = await tx.card.findMany({
         where: { card_number: { in: cardNumbers } },
         select: { card_number: true },
       });
-      const existingNumbers = new Set(existingCards.map(c => c.card_number));
+      const existingNumbers = new Set(existingCards.map((c: any) => c.card_number));
 
       // Create cards that don't exist (batch create for better performance)
-      const cardsToCreate = validatedCards.filter(c => !existingNumbers.has(c.card_number));
+      const cardsToCreate = validatedCards.filter((c: any) => !existingNumbers.has(c.card_number));
       
       if (cardsToCreate.length > 0) {
         // Prisma doesn't support createMany with nested data, so we'll do batches

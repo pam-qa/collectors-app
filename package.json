@@ -8,7 +8,7 @@
     "dev:server": "cd server && npm run dev",
     "dev:server:clean": "powershell -File scripts/kill-port.ps1 && npm run dev:server",
     "dev:client": "cd client && npm run dev",
-    "build": "npm run build:server && npm run build:client",
+    "build": "cd client && npm install && npm run build",
     "build:server": "cd server && npm run build",
     "build:client": "cd client && npm run build",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
