@@ -22,11 +22,14 @@
    NODE_ENV=production
    CLIENT_URL=https://your-vercel-app.vercel.app
    ```
+   
+   **IMPORTANT:** Make sure `NODE_ENV=production` is set! This tells npm to skip devDependencies (including Puppeteer).
 
 4. **Deploy**
    - Railway will automatically detect Node.js
-   - It will run: `npm install` (which runs `prisma generate` postinstall)
-   - Then: `npm run build` (if needed)
+   - It will run: `npm ci` (with NODE_ENV=production, skips devDependencies like Puppeteer)
+   - The `postinstall` script runs: `prisma generate` (Prisma CLI is in dependencies)
+   - Then: `npm run build` (compiles TypeScript)
    - Then: `npm start` (starts the server)
 
 5. **Get Your API URL**
@@ -39,10 +42,11 @@
 ## Important Notes
 
 - **Root Directory MUST be set to `server`** in Railway settings
-- **Puppeteer is in devDependencies** - It's only needed for local scraping scripts, not for the production API server. This prevents Railway from downloading Chromium (300MB+) during production builds.
-- The `postinstall` script in package.json automatically generates Prisma client
+- **NODE_ENV=production MUST be set** - This tells `npm ci` to skip devDependencies (including Puppeteer)
+- **Prisma CLI is in dependencies** - Required for the `postinstall` script to run `prisma generate`
+- **Puppeteer is in devDependencies** - Only needed for local scraping scripts, not production. Railway won't install it when NODE_ENV=production
+- The `postinstall` script automatically generates Prisma client after npm install
 - Server listens on `0.0.0.0` to work with Railway's port binding
-- Railway will skip devDependencies in production builds (faster deployment)
 
 ## Troubleshooting
 
