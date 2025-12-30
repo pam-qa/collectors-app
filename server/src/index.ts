@@ -18,8 +18,8 @@ app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true,
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
@@ -29,7 +29,7 @@ app.get('/health', (req: Request, res: Response) => {
 // API info endpoint
 app.get('/api', (req: Request, res: Response) => {
   res.json({ 
-    message: 'TCG Collection API',
+    message: 'iCollect API',
     version: '1.0.0',
     endpoints: {
       auth: {

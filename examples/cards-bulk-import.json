@@ -1,0 +1,83 @@
+{
+  "pack_id": "YOUR_PACK_UUID_HERE",
+  "cards": [
+    {
+      "card_number": "LOB-EN004",
+      "name": "Dark Magician Girl",
+      "card_type": "MONSTER",
+      "frame_color": "EFFECT",
+      "attribute": "DARK",
+      "monster_type": "Spellcaster",
+      "monster_abilities": ["Effect"],
+      "level": 6,
+      "atk": "2000",
+      "def": "1700",
+      "card_text": "Gains 300 ATK for every \"Dark Magician\" or \"Magician of Black Chaos\" in the GY.",
+      "rarity": "SUPER_RARE",
+      "language": "EN",
+      "tcg_legal": true,
+      "ocg_legal": true,
+      "ban_status": "UNLIMITED"
+    },
+    {
+      "card_number": "LOB-EN005",
+      "name": "Summoned Skull",
+      "card_type": "MONSTER",
+      "frame_color": "NORMAL",
+      "attribute": "DARK",
+      "monster_type": "Fiend",
+      "level": 6,
+      "atk": "2500",
+      "def": "1200",
+      "rarity": "ULTRA_RARE",
+      "language": "EN",
+      "tcg_legal": true,
+      "ocg_legal": true,
+      "ban_status": "UNLIMITED"
+    },
+    {
+      "card_number": "LOB-EN006",
+      "name": "Exodia the Forbidden One",
+      "card_type": "MONSTER",
+      "frame_color": "NORMAL",
+      "attribute": "DARK",
+      "monster_type": "Spellcaster",
+      "level": 3,
+      "atk": "1000",
+      "def": "1000",
+      "card_text": "If you have \"Right Leg of the Forbidden One\", \"Left Leg of the Forbidden One\", \"Right Arm of the Forbidden One\", and \"Left Arm of the Forbidden One\" in addition to this card in your hand, you win the Duel.",
+      "rarity": "SECRET_RARE",
+      "language": "EN",
+      "tcg_legal": true,
+      "ocg_legal": true,
+      "ban_status": "UNLIMITED"
+    },
+    {
+      "card_number": "LOB-EN051",
+      "name": "Dark Hole",
+      "card_type": "SPELL",
+      "frame_color": "SPELL",
+      "spell_type": "NORMAL",
+      "card_text": "Destroy all monsters on the field.",
+      "rarity": "COMMON",
+      "language": "EN",
+      "tcg_legal": true,
+      "ocg_legal": true,
+      "ban_status": "UNLIMITED"
+    },
+    {
+      "card_number": "LOB-EN061",
+      "name": "Trap Hole",
+      "card_type": "TRAP",
+      "frame_color": "TRAP",
+      "trap_type": "NORMAL",
+      "card_text": "When your opponent Normal or Flip Summons a monster with 1000 or more ATK: Target that monster; destroy that target.",
+      "rarity": "COMMON",
+      "language": "EN",
+      "tcg_legal": true,
+      "ocg_legal": true,
+      "ban_status": "UNLIMITED"
+    }
+  ]
+}
+

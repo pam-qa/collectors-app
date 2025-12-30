@@ -1,0 +1,7 @@
+card_number,name,card_type,frame_color,attribute,monster_type,monster_abilities,level,atk,def,card_text,rarity,language,tcg_legal,ocg_legal,ban_status
+LOB-EN004,"Dark Magician Girl",MONSTER,EFFECT,DARK,Spellcaster,"Effect",6,2000,1700,"Gains 300 ATK for every ""Dark Magician"" or ""Magician of Black Chaos"" in the GY.",SUPER_RARE,EN,true,true,UNLIMITED
+LOB-EN005,"Summoned Skull",MONSTER,NORMAL,DARK,Fiend,,6,2500,1200,,ULTRA_RARE,EN,true,true,UNLIMITED
+LOB-EN006,"Exodia the Forbidden One",MONSTER,NORMAL,DARK,Spellcaster,,3,1000,1000,"If you have ""Right Leg of the Forbidden One"", ""Left Leg of the Forbidden One"", ""Right Arm of the Forbidden One"", and ""Left Arm of the Forbidden One"" in addition to this card in your hand, you win the Duel.",SECRET_RARE,EN,true,true,UNLIMITED
+LOB-EN051,"Dark Hole",SPELL,SPELL,,,,"NORMAL",,,,"Destroy all monsters on the field.",COMMON,EN,true,true,UNLIMITED
+LOB-EN061,"Trap Hole",TRAP,TRAP,,,,"NORMAL",,,,"When your opponent Normal or Flip Summons a monster with 1000 or more ATK: Target that monster; destroy that target.",COMMON,EN,true,true,UNLIMITED
+

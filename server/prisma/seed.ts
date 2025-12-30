@@ -36,99 +36,99 @@ async function main() {
   });
   console.log(`✅ Test user created: ${user001.username} (${user001.email})`);
 
-  // Create sample pack
-  const samplePack = await prisma.pack.upsert({
-    where: { set_code: 'LOB' },
+  // Create One Piece OP-13 pack
+  const op13Pack = await prisma.pack.upsert({
+    where: { set_code: 'OP13' },
     update: {},
     create: {
-      set_code: 'LOB',
-      title: 'Legend of Blue Eyes White Dragon',
-      title_jp: '青眼の白龍の伝説',
-      language: 'EN',
-      release_date: new Date('2002-03-08'),
+      set_code: 'OP13',
+      title: 'Carrying on His Will',
+      title_jp: '意志を継ぐもの',
+      language: 'JP',
+      release_date: new Date('2025-11-07'),
       set_type: 'BOOSTER',
-      total_cards: 3,
+      total_cards: 175,
     },
   });
-  console.log(`✅ Sample pack created: ${samplePack.title}`);
+  console.log(`✅ Pack created: ${op13Pack.title} (OP13)`);
 
-  // Create sample cards
-  const sampleCards = [
+  // Create sample One Piece OP-13 cards
+  // Note: One Piece cards use different terminology (Leader/Character/Event)
+  // We're adapting the schema to work with One Piece cards
+  const op13SampleCards = [
     {
-      card_number: 'LOB-EN001',
-      set_code: 'LOB',
+      card_number: 'OP13-001',
+      set_code: 'OP13',
       set_position: '001',
-      konami_id: '89631139',
-      name: 'Blue-Eyes White Dragon',
-      name_jp: '青眼の白龍',
-      card_type: 'MONSTER' as const,
-      frame_color: 'NORMAL' as const,
-      attribute: 'LIGHT' as const,
-      monster_type: 'Dragon',
-      monster_abilities: [],
-      level: 8,
-      atk: '3000',
-      def: '2500',
-      card_text: 'This legendary dragon is a powerful engine of destruction. Virtually invincible, very few have faced this awesome creature and lived to tell the tale.',
-      rarity: 'ULTRA_RARE' as const,
-      tcg_legal: true,
+      name: 'Monkey D. Luffy',
+      name_jp: 'モンキー・D・ルフィ',
+      card_type: 'MONSTER' as const, // Leader cards stored as MONSTER type
+      frame_color: 'EFFECT' as const,
+      attribute: 'FIRE' as const,
+      monster_type: 'Leader',
+      monster_abilities: ['Leader'],
+      level: 4, // Life value
+      atk: '5000',
+      def: null,
+      card_text: 'DON!!×1 【相手のアタック時】 自分のアクティブのドン!!が5枚以下の場合、自分のドン!!を任意の枚数レストにできる。レストにしたドン!!1枚につき、このリーダーか自分の特徴《麦わらの一味》を持つキャラ1枚までを、このバトル中、パワー+2000。',
+      rarity: 'SECRET_RARE' as const,
+      tcg_legal: false,
       ocg_legal: true,
       ban_status: 'UNLIMITED' as const,
-      pack_id: samplePack.id,
+      pack_id: op13Pack.id,
+      language: 'JP' as const,
     },
     {
-      card_number: 'LOB-EN002',
-      set_code: 'LOB',
+      card_number: 'OP13-002',
+      set_code: 'OP13',
       set_position: '002',
-      konami_id: '46986414',
-      name: 'Dark Magician',
-      name_jp: 'ブラック・マジシャン',
+      name: 'Portgas D. Ace',
+      name_jp: 'ポートガス・D・エース',
       card_type: 'MONSTER' as const,
-      frame_color: 'NORMAL' as const,
-      attribute: 'DARK' as const,
-      monster_type: 'Spellcaster',
-      monster_abilities: [],
-      level: 7,
-      atk: '2500',
-      def: '2100',
-      card_text: 'The ultimate wizard in terms of attack and defense.',
-      rarity: 'ULTRA_RARE' as const,
-      tcg_legal: true,
+      frame_color: 'EFFECT' as const,
+      attribute: 'FIRE' as const,
+      monster_type: 'Leader',
+      monster_abilities: ['Leader'],
+      level: 3,
+      atk: '6000',
+      def: null,
+      rarity: 'SECRET_RARE' as const,
+      tcg_legal: false,
       ocg_legal: true,
       ban_status: 'UNLIMITED' as const,
-      pack_id: samplePack.id,
+      pack_id: op13Pack.id,
+      language: 'JP' as const,
     },
     {
-      card_number: 'LOB-EN003',
-      set_code: 'LOB',
+      card_number: 'OP13-003',
+      set_code: 'OP13',
       set_position: '003',
-      konami_id: '74677422',
-      name: 'Red-Eyes Black Dragon',
-      name_jp: '真紅眼の黒竜',
+      name: 'Gol D. Roger',
+      name_jp: 'ゴール・D・ロジャー',
       card_type: 'MONSTER' as const,
-      frame_color: 'NORMAL' as const,
-      attribute: 'DARK' as const,
-      monster_type: 'Dragon',
-      monster_abilities: [],
-      level: 7,
-      atk: '2400',
-      def: '2000',
-      card_text: 'A ferocious dragon with a deadly attack.',
-      rarity: 'ULTRA_RARE' as const,
-      tcg_legal: true,
+      frame_color: 'EFFECT' as const,
+      attribute: 'WATER' as const,
+      monster_type: 'Leader',
+      monster_abilities: ['Leader'],
+      level: 5,
+      atk: '7000',
+      def: null,
+      rarity: 'SECRET_RARE' as const,
+      tcg_legal: false,
       ocg_legal: true,
       ban_status: 'UNLIMITED' as const,
-      pack_id: samplePack.id,
+      pack_id: op13Pack.id,
+      language: 'JP' as const,
     },
   ];
 
-  for (const cardData of sampleCards) {
+  for (const cardData of op13SampleCards) {
     const card = await prisma.card.upsert({
       where: { card_number: cardData.card_number },
       update: {},
       create: cardData,
     });
-    console.log(`✅ Sample card created: ${card.name}`);
+    console.log(`✅ Card created: ${card.name_jp || card.name} (${card.card_number})`);
   }
 
   // Create sample collection for user001
@@ -160,8 +160,8 @@ async function main() {
     update: {},
     create: {
       user_id: user001.id,
-      name: 'Blue-Eyes Deck',
-      description: 'A deck focused on Blue-Eyes White Dragon',
+      name: 'One Piece OP-13 Deck',
+      description: 'A deck from Carrying on His Will set',
       format: 'Advanced',
       is_public: false,
     },

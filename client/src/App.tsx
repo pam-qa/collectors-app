@@ -1,22 +1,30 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Link, useSearchParams } from 'react-router-dom';
+import SearchBar from './components/SearchBar';
+import CardGrid from './components/CardGrid';
+import CardDetail from './components/CardDetail';
 
 function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>TCG Collection Manager</h1>
-        <nav>
-          <a href="/">Home</a>
-          <a href="/cards">Cards</a>
-          <a href="/collections">Collections</a>
-          <a href="/decks">Decks</a>
-        </nav>
+        <div className="header-left">
+          <Link to="/" className="logo">
+            <img src="/logo.png" alt="iCollect" className="logo-image" />
+          </Link>
+          <nav>
+            <Link to="/cards">Cards</Link>
+            <Link to="/collections">Collections</Link>
+            <Link to="/decks">Decks</Link>
+          </nav>
+        </div>
+        <SearchBar />
       </header>
 
       <main className="app-main">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/cards" element={<CardsPage />} />
+          <Route path="/cards/:id" element={<CardDetail />} />
           <Route path="/collections" element={<CollectionsPage />} />
           <Route path="/decks" element={<DecksPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -25,7 +33,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>&copy; 2024 TCG Collection Manager</p>
+        <p>&copy; 2024 iCollect</p>
       </footer>
     </div>
   );
@@ -35,7 +43,7 @@ function App() {
 function HomePage() {
   return (
     <div className="page">
-      <h2>Welcome to TCG Collection Manager</h2>
+      <h2>Welcome to iCollect</h2>
       <p>Manage your trading card collection with multi-source price tracking.</p>
       <div className="features">
         <div className="feature">
@@ -56,10 +64,13 @@ function HomePage() {
 }
 
 function CardsPage() {
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search') || undefined;
+  const packId = searchParams.get('pack') || undefined;
+
   return (
     <div className="page">
-      <h2>Cards</h2>
-      <p>Browse and search cards. (Coming in Phase 1)</p>
+      <CardGrid packId={packId} searchQuery={searchQuery} />
     </div>
   );
 }

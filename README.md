@@ -1,4 +1,4 @@
-# TCG Collection Manager
+# iCollect
 
 A full-stack web application for managing Trading Card Game collections with multi-source price tracking.
 

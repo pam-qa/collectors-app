@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
+import multer from 'multer';
 import { authenticate, requireAdmin } from '../middleware/auth';
 
 // Admin controllers
@@ -30,6 +31,25 @@ const router = Router();
 // All routes require admin authentication
 router.use(authenticate, requireAdmin);
 
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept JSON and CSV files
+    if (file.mimetype === 'application/json' || 
+        file.mimetype === 'text/csv' ||
+        file.originalname.endsWith('.json') ||
+        file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JSON and CSV files are allowed'));
+    }
+  },
+});
+
 // Dashboard
 router.get('/dashboard', getDashboard);
 
@@ -48,7 +68,7 @@ router.delete('/packs/:id', deletePack);
 router.post('/cards', createCard);
 router.put('/cards/:id', updateCard);
 router.delete('/cards/:id', deleteCard);
-router.post('/cards/bulk-import', bulkImportCards);
+router.post('/cards/bulk-import', upload.single('file'), bulkImportCards);
 
 export default router;
 

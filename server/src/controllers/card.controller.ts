@@ -47,8 +47,27 @@ export const getAllCards = async (req: Request, res: Response): Promise<void> =>
         take: Math.min(parseInt(limit as string), 100),
         skip: parseInt(offset as string),
         orderBy: [{ set_code: 'asc' }, { set_position: 'asc' }],
-        include: {
-          pack: { select: { id: true, title: true, set_code: true } },
+        select: {
+          id: true,
+          card_number: true,
+          set_code: true,
+          set_position: true,
+          name: true,
+          name_jp: true,
+          language: true,
+          card_type: true,
+          frame_color: true,
+          rarity: true,
+          image_url_small: true,
+          image_url: true,
+          prices: true,
+          pack: { 
+            select: { 
+              id: true, 
+              title: true, 
+              set_code: true 
+            } 
+          },
         },
       }),
       prisma.card.count({ where }),
@@ -331,17 +350,60 @@ export const deleteCard = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+interface FileUploadRequest extends Request {
+  file?: {
+    buffer: Buffer;
+    mimetype: string;
+    originalname: string;
+  };
+}
+
 /**
  * POST /api/admin/cards/bulk-import
  * Bulk import cards (admin only)
+ * Supports both JSON array in body or file upload (JSON/CSV)
+ * 
+ * Body format:
+ * {
+ *   "pack_id": "uuid",
+ *   "cards": [{ card objects }]
+ * }
+ * 
+ * Or upload a JSON/CSV file with cards array
  */
-export const bulkImportCards = async (req: Request, res: Response): Promise<void> => {
+export const bulkImportCards = async (req: FileUploadRequest, res: Response): Promise<void> => {
   try {
-    const { cards, pack_id } = req.body;
+    let cards: any[] = [];
+    let pack_id = req.body.pack_id;
 
-    if (!Array.isArray(cards) || cards.length === 0) {
-      res.status(400).json({ error: 'cards array is required' });
-      return;
+    // Check if file was uploaded
+    const file = req.file;
+    if (file) {
+      const fileContent = file.buffer.toString('utf-8');
+      
+      if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+        // Parse CSV
+        cards = parseCSVToCards(fileContent);
+      } else {
+        // Parse JSON
+        const parsed = JSON.parse(fileContent);
+        if (Array.isArray(parsed)) {
+          cards = parsed;
+        } else if (parsed.cards && Array.isArray(parsed.cards)) {
+          cards = parsed.cards;
+          pack_id = pack_id || parsed.pack_id;
+        } else {
+          res.status(400).json({ error: 'Invalid JSON format. Expected array or object with "cards" array' });
+          return;
+        }
+      }
+    } else {
+      // Get cards from request body
+      cards = req.body.cards;
+      if (!Array.isArray(cards) || cards.length === 0) {
+        res.status(400).json({ error: 'cards array is required or upload a JSON/CSV file' });
+        return;
+      }
     }
 
     if (!pack_id) {
@@ -356,47 +418,141 @@ export const bulkImportCards = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    // Process cards
-    const results = { created: 0, skipped: 0, errors: [] as string[] };
+    // Validate all cards before importing
+    const validatedCards: any[] = [];
+    const validationErrors: string[] = [];
 
-    for (const cardData of cards) {
-      try {
-        // Check if card already exists
-        const existing = await prisma.card.findUnique({ 
-          where: { card_number: cardData.card_number } 
-        });
-        
-        if (existing) {
-          results.skipped++;
-          continue;
-        }
+    for (let i = 0; i < cards.length; i++) {
+      const card = cards[i];
+      const errors: string[] = [];
 
-        await prisma.card.create({
-          data: {
-            ...cardData,
-            set_code: cardData.set_code || pack.set_code,
-            pack_id,
-          },
-        });
-        results.created++;
-      } catch (err: any) {
-        results.errors.push(`${cardData.card_number}: ${err.message}`);
+      // Required fields
+      if (!card.card_number) errors.push('card_number is required');
+      if (!card.name) errors.push('name is required');
+      if (!card.card_type) errors.push('card_type is required');
+      if (!card.frame_color) errors.push('frame_color is required');
+
+      if (errors.length > 0) {
+        validationErrors.push(`Card ${i + 1}: ${errors.join(', ')}`);
+        continue;
       }
+
+      validatedCards.push({
+        ...card,
+        set_code: card.set_code || pack.set_code,
+        set_position: card.set_position || card.card_number.split('-').pop() || String(i + 1).padStart(3, '0'),
+        pack_id,
+      });
     }
 
-    // Update pack card count
-    await prisma.pack.update({
-      where: { id: pack_id },
-      data: { total_cards: { increment: results.created } },
+    if (validationErrors.length > 0 && validatedCards.length === 0) {
+      res.status(400).json({ 
+        error: 'All cards failed validation',
+        validationErrors 
+      });
+      return;
+    }
+
+    // Use transaction for better performance and atomicity
+    const results = await prisma.$transaction(async (tx) => {
+      const result = { created: 0, skipped: 0, errors: [] as string[] };
+
+      // Check existing cards in batch
+      const cardNumbers = validatedCards.map(c => c.card_number);
+      const existingCards = await tx.card.findMany({
+        where: { card_number: { in: cardNumbers } },
+        select: { card_number: true },
+      });
+      const existingNumbers = new Set(existingCards.map(c => c.card_number));
+
+      // Create cards that don't exist (batch create for better performance)
+      const cardsToCreate = validatedCards.filter(c => !existingNumbers.has(c.card_number));
+      
+      if (cardsToCreate.length > 0) {
+        // Prisma doesn't support createMany with nested data, so we'll do batches
+        const batchSize = 50;
+        for (let i = 0; i < cardsToCreate.length; i += batchSize) {
+          const batch = cardsToCreate.slice(i, i + batchSize);
+          await Promise.all(
+            batch.map(cardData =>
+              tx.card.create({ data: cardData }).catch((err: any) => {
+                result.errors.push(`${cardData.card_number}: ${err.message}`);
+              })
+            )
+          );
+        }
+        result.created = cardsToCreate.length - result.errors.length;
+      }
+
+      result.skipped = existingNumbers.size;
+
+      // Update pack card count
+      if (result.created > 0) {
+        await tx.pack.update({
+          where: { id: pack_id },
+          data: { total_cards: { increment: result.created } },
+        });
+      }
+
+      return result;
     });
 
     res.json({ 
       message: 'Bulk import completed', 
-      results,
+      results: {
+        ...results,
+        validationErrors: validationErrors.length > 0 ? validationErrors : undefined,
+      },
+      summary: {
+        total: cards.length,
+        created: results.created,
+        skipped: results.skipped,
+        errors: results.errors.length,
+      },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Bulk import error:', error);
-    res.status(500).json({ error: 'Failed to import cards' });
+    res.status(500).json({ error: 'Failed to import cards', details: error.message });
   }
 };
+
+/**
+ * Parse CSV content to card objects
+ */
+function parseCSVToCards(csvContent: string): any[] {
+  const lines = csvContent.split('\n').filter(line => line.trim());
+  if (lines.length < 2) return [];
+
+  // Parse header
+  const headers = lines[0].split(',').map(h => h.trim());
+  const cards: any[] = [];
+
+  // Parse rows
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim());
+    const card: any = {};
+
+    headers.forEach((header, index) => {
+      const value = values[index];
+      if (value && value !== '') {
+        // Handle array fields
+        if (header === 'monster_abilities' || header === 'link_arrows') {
+          card[header] = value.split(';').map(v => v.trim()).filter(v => v);
+        } else if (header === 'level' || header === 'rank' || header === 'link_rating' || header === 'pendulum_scale') {
+          card[header] = parseInt(value);
+        } else if (header === 'tcg_legal' || header === 'ocg_legal' || header === 'is_first_edition') {
+          card[header] = value.toLowerCase() === 'true' || value === '1';
+        } else {
+          card[header] = value;
+        }
+      }
+    });
+
+    if (card.card_number && card.name) {
+      cards.push(card);
+    }
+  }
+
+  return cards;
+}
 
