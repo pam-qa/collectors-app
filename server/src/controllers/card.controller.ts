@@ -400,11 +400,12 @@ export const bulkImportCards = async (req: FileUploadRequest, res: Response): Pr
       }
     } else {
       // Get cards from request body
-      cards = req.body.cards;
-      if (!Array.isArray(cards) || cards.length === 0) {
+      const bodyCards = req.body.cards;
+      if (!Array.isArray(bodyCards) || bodyCards.length === 0) {
         res.status(400).json({ error: 'cards array is required or upload a JSON/CSV file' });
         return;
       }
+      cards = bodyCards;
     }
 
     if (!pack_id) {
