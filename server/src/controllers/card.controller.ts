@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient, CardType, FrameColor, Attribute, Rarity, BanStatus, Language } from '@prisma/client';
+import multer from 'multer';
 
 const prisma = new PrismaClient();
 
@@ -351,11 +352,7 @@ export const deleteCard = async (req: Request, res: Response): Promise<void> => 
 };
 
 interface FileUploadRequest extends Request {
-  file?: {
-    buffer: Buffer;
-    mimetype: string;
-    originalname: string;
-  };
+  file?: Express.Multer.File;
 }
 
 /**
