@@ -12,6 +12,8 @@
    - Set to: `server`
    - This tells Railway to use the server folder as the project root
 
+   **Note:** The `nixpacks.toml` file configures Railway to skip devDependencies during installation, preventing Puppeteer from being detected/installed.
+
 3. **Add Environment Variables**
    In Railway project → **Variables**, add:
    ```env
@@ -42,9 +44,13 @@
 ## Important Notes
 
 - **Root Directory MUST be set to `server`** in Railway settings
-- **NODE_ENV=production MUST be set** - This tells `npm ci` to skip devDependencies (including Puppeteer)
+- **NODE_ENV=production MUST be set** - This tells `npm ci` to skip devDependencies during install
 - **Prisma CLI is in dependencies** - Required for the `postinstall` script to run `prisma generate`
-- **Puppeteer is in devDependencies** - Only needed for local scraping scripts, not production. Railway won't install it when NODE_ENV=production
+- **Puppeteer is in devDependencies** - Only needed for local scraping scripts (`scripts/scrape-op13.ts`), not production
+- **Railway may show "Installing puppeteer dependencies"** - This is Railway's Railpack scanning package.json. However, Puppeteer **will NOT actually be installed** because:
+  1. It's in devDependencies (not dependencies)
+  2. `NODE_ENV=production` is set
+  3. `npm ci` skips devDependencies in production mode
 - The `postinstall` script automatically generates Prisma client after npm install
 - Server listens on `0.0.0.0` to work with Railway's port binding
 
