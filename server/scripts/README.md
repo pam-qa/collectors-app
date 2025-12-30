@@ -2,6 +2,18 @@
 
 Scripts for scraping card data from external sources.
 
+## Prerequisites
+
+**Puppeteer is required for scraping scripts but is NOT included in production dependencies.**
+
+To use scraping scripts locally, install Puppeteer first:
+
+```bash
+npm install --save-dev puppeteer
+```
+
+This is necessary because Puppeteer downloads Chromium (~300MB) which would cause Railway builds to timeout. Scraping scripts are only used for local development/data import.
+
 ## OP-13 Scraper
 
 **Note:** The `scrape-op13.ts` script is a template and needs implementation.
